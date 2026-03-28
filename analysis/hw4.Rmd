@@ -4,19 +4,7 @@ output: html_document
 date: "2026-03-27"
 ---
 
----
-title: "BIOS 731 Homework 4"
-author: "Linlin Wu"
-date: "`r Sys.Date()`"
-output: pdf_document
----
-
----
-title: "BIOS 731 Homework 4"
-author: "Linlin Wu"
-date: "`r Sys.Date()`"
-output: pdf_document
----
+https://github.com/wull1009/bios731_hw4_linlin
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -486,3 +474,54 @@ knitr::include_graphics("../results/p3_vi_elbo.png")
 ## Comments
 
 Overall, both methods produced very similar estimates for the two component means. The Gibbs posterior means were 54.74 and 80.28, while the corresponding variational Bayes estimates were 54.75 and 80.28. Thus, for this dataset, variational Bayes provided an excellent approximation to the posterior mean estimates from Gibbs sampling. In terms of computation, variational Bayes was much faster than Gibbs sampling. For the Gibbs sampler, the trace plots showed stable mixing across chains, the \hat{R} values were essentially 1, and the effective sample sizes were large, all of which support good convergence.
+
+# Problem 4: Perform a simulation study on the cluster
+
+In this simulation study, I generated data from a 4-component Gaussian mixture model with true means
+\[
+\mu = (0, 5, 10, 20)
+\]
+and unit variance. I evaluated estimation of \(\mu\) in terms of bias, coverage, and computation time for both the Gibbs sampler and the variational Bayes algorithm. The study was carried out at sample sizes
+\[
+n \in \{100, 1000, 10000\},
+\]
+using \(nsim = 500\) Monte Carlo replicates for each sample size. For the Gibbs sampler, each run used 10,000 iterations with the first 2,000 discarded as burn-in.
+
+Following the required cluster workflow, I organized the project into separate `source/`, `slurm/`, `results/`, and `logs/` directories. Each simulation scenario, indexed by sample size and Monte Carlo replicate, was submitted as a separate SLURM job so that each scenario had its own job ID. After the raw outputs were collected, I aggregated the results and produced summary plots with Monte Carlo standard error bars.
+
+## Simulation summaries
+
+```{r p4-load-summaries}
+p4_bias_cov_summary <- read.csv("../results/summary/p4_bias_coverage_summary.csv")
+p4_time_summary <- read.csv("../results/summary/p4_time_summary.csv")
+```
+
+## Bias of \(\hat{\mu}\)
+
+The following figure shows the Monte Carlo bias of the estimated component means, with Monte Carlo standard error bars.
+
+```{r p4-bias-plot, echo=FALSE, out.width="95%"}
+knitr::include_graphics("../results/figures/p4_bias_plot.png")
+```
+
+## Coverage of \(\hat{\mu}\)
+
+The following figure shows the empirical coverage probabilities for interval estimates of the component means, with Monte Carlo standard error bars. The dashed horizontal line marks the nominal 95% level.
+
+```{r p4-coverage-plot, echo=FALSE, out.width="95%"}
+knitr::include_graphics("../results/figures/p4_coverage_plot.png")
+```
+
+## Computation time
+
+The following figure compares the average computation time for Gibbs sampling and variational Bayes across the three sample sizes. The y-axis is shown on the log scale.
+
+```{r p4-time-plot, echo=FALSE, out.width="90%"}
+knitr::include_graphics("../results/figures/p4_time_plot.png")
+```
+
+## Summary of results
+
+Overall, both Gibbs sampling and variational Bayes produced small bias for the component mean estimates across all sample sizes. The Monte Carlo bias was generally close to zero for all four means, and the two methods gave very similar point estimation performance. Although some finite-sample fluctuation remained, there was no evidence of large systematic bias for either method.
+
+For interval estimation, the Gibbs-based intervals were usually close to the nominal 95% coverage level, while the variational Bayes intervals were sometimes slightly below 95% for some components. This is consistent with the common tendency of mean-field variational Bayes to underestimate posterior uncertainty. In terms of computation time, variational Bayes was substantially faster than Gibbs sampling at every sample size, and the computational gap became much larger as the sample size increased. Therefore, the simulation study suggests that variational Bayes provides a much faster approximation with similar point estimation accuracy, whereas Gibbs sampling offers somewhat better uncertainty quantification.
